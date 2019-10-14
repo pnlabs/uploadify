@@ -150,6 +150,7 @@ uploadifyMessages['uploadMessageComplete'] = 'Complete';
 					removeCompleted : true,               // Remove queue items from the queue when they are done uploading
 					removeTimeout   : 3,                  // The delay in seconds before removing a queue item if removeCompleted is set to true
 					requeueErrors   : false,              // Keep errored files in the queue and keep trying to upload them
+					skipExisting    : true,               // Show prompt on exisiting files if false and just skip them if true
 					successTimeout  : 30,                 // The number of seconds to wait for Flash to detect the server's response after the file has finished uploading
 					uploadLimit     : 0,                  // The maximum number of files you can upload
 					width           : 120,                // The width of the browse button
@@ -951,14 +952,16 @@ uploadifyMessages['uploadMessageComplete'] = 'Complete';
 				this.queueData.uploadSize = file.size;
 			}
 			if (settings.checkExisting) {
+				settings.formData.filename = file.name;
 				$.ajax({
+					context : this,
 					type    : 'POST',
 					async   : false,
 					url     : settings.checkExisting,
-					data    : {filename: file.name},
+					data    : settings.formData,
 					success : function(data) {
 						if (data == 1) {
-							var overwrite = confirm(uploadifyMessages['overwriteItemTextStart'] + ' "' + file.name + '" ' + uploadifyMessages['overwriteItemTextEnd']);
+							var overwrite = (this.settings.skipExisting) ? false : confirm(uploadifyMessages['overwriteItemTextStart'] + ' "' + file.name + '" ' + uploadifyMessages['overwriteItemTextEnd']);
 							if (!overwrite) {
 								this.cancelUpload(file.id);
 								$('#' + file.id).remove();
